@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>G1 · 状态观测台</title>
+  <link rel="stylesheet" href="/static/style.css?v=health-video-1">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true">G1<span>●</span></div>
+      <div><div class="eyebrow">UNITREE / LOCAL TELEMETRY</div><h1>状态观测台</h1></div>
+      <div class="header-right"><span class="readonly">◈ 只读观测</span><span id="mode" class="pill neutral">连接中</span></div>
+    </header>
+    <div id="transport-alert" class="alert warning" role="status">正在连接本机观测服务，等待状态数据…</div>
+    <section class="health-overview" aria-label="机器人健康概况">
+      <div class="health-cell battery-summary"><div class="summary-label">电池电量 <span id="battery-freshness" class="freshness">等待数据</span></div><div class="soc-line"><strong id="battery-soc">—</strong><span>%</span></div><div id="battery-meter" class="battery-meter" role="progressbar" aria-label="电池电量" aria-valuemin="0" aria-valuemax="100"><i id="battery-fill"></i></div><div id="battery-brief" class="summary-note">循环 — · SOH 原值 —</div></div>
+      <div class="health-cell motion-summary"><div class="summary-label">当前运动模式 <span id="motion-freshness" class="freshness">等待数据</span></div><strong id="motion-label" class="summary-value">—</strong><div id="motion-ids" class="summary-note">FSM ID — · FSM mode —</div><div id="motion-task" class="summary-note">任务 — · 运行时长原值 —</div></div>
+      <div class="health-cell temperature-summary"><div class="summary-label">身体最高电机温度 <span id="body-freshness" class="freshness">等待数据</span></div><strong id="body-temperature" class="summary-value">—<small> °C</small></strong><div id="body-temperature-joint" class="summary-note">等待关节温度</div><div class="hand-temperature-line"><span>左手 <b id="left-temperature">—</b><small id="left-temperature-state">等待</small></span><span>右手 <b id="right-temperature">—</b><small id="right-temperature-state">等待</small></span></div></div>
+    </section>
+    <section class="connection-strip" aria-label="连接概况">
+      <div><span class="metric-label">身体</span><span id="state-status" class="status-text">等待连接</span><span id="state-hz" class="metric-rate">— Hz</span><small id="state-detail">等待 DDS 数据</small></div>
+      <div><span class="metric-label">雷达</span><span id="lidar-status" class="status-text">等待连接</span><span id="lidar-hz" class="metric-rate">— Hz</span><small id="lidar-detail">等待点云数据</small></div>
+      <div><span class="metric-label">网卡 / DDS 域</span><span id="network" class="mono">— / —</span></div>
+      <div><span class="metric-label">绘制点数</span><span id="point-count" class="mono">—</span><small id="point-detail">当前帧原始点数：等待数据</small></div>
+    </section>
+    <main>
+      <section class="card robot-card">
+        <div class="card-heading"><div><div class="eyebrow">KINEMATICS</div><h2>机器人姿态 <span>29 DOF</span></h2></div><button id="reset-robot" type="button">重置视角</button></div>
+        <div class="scene-wrap" id="robot-scene"><div class="scene-caption"><span class="axis-key">X <i></i> Y <i></i> Z</span><span>拖动旋转 · 滚轮缩放</span></div><div id="model-status" class="view-badge">模型加载中</div></div>
+        <div class="view-footer"><span id="pose-note">灰色零位参考 · 尚无有效状态</span><span id="hand-pose-note">骨盆位置固定 · 双手默认零位，等待独立手部数据</span></div>
+      </section>
+      <section class="card lidar-card">
+        <div class="card-heading"><div><div class="eyebrow">LIDAR / SOURCE FRAME</div><h2>雷达点云 <span>独立坐标系</span></h2></div><div class="lidar-controls"><label for="lidar-density">点云密度 <select id="lidar-density"><option value="0">单帧</option><option value="0.3" selected>最近0.3秒</option><option value="0.6">最近0.6秒</option></select></label><button id="reset-lidar" type="button">重置视角</button></div></div>
+        <div class="scene-wrap" id="lidar-scene"><div class="scene-caption"><span id="lidar-frame">frame: —</span><span>颜色表示距离</span></div><div id="cloud-status" class="view-badge">等待点云</div><div id="range-legend"><span>近</span><i></i><span>远</span></div></div>
+        <div class="view-footer"><span id="lidar-topic">topic: —</span><span>未提供 TF · 不与机器人叠加</span><span id="lidar-density-note">近0.3秒叠加 · 未做运动补偿，移动时可能重影</span></div>
+      </section>
+      <section class="card video-card" aria-label="前置视频">
+        <div class="card-heading"><div><div class="eyebrow">FRONT CAMERA / DDS</div><h2>前置视频 <span>独立图像通道</span></h2></div><div class="hand-channel"><span id="video-status" class="status-text waiting">等待数据</span><span id="video-hz" class="metric-rate">— Hz</span></div></div>
+        <div class="video-stage"><img id="video-image" alt="G1 前置相机最近一帧" hidden><div id="video-placeholder" class="video-placeholder"><span class="camera-symbol" aria-hidden="true">▣</span><strong id="video-message">等待前置视频</strong><span id="video-note">接收到受支持的图像后显示画面</span></div><div id="video-badge" class="video-badge">尚未收到图像</div></div>
+        <div class="view-footer"><span id="video-detail">尚未接收到数据</span><span id="video-meta">格式 — · 尺寸 —</span><span id="video-topic">topic: —</span></div>
+      </section>
+      <section class="card health-detail-card">
+        <div class="card-heading"><div><div class="eyebrow">POWER & SYSTEM</div><h2>电池与主板</h2></div><span class="secondary">保留 DDS 原始字段</span></div>
+        <div class="system-channel"><div><h3>电池状态</h3><span id="battery-status" class="status-text waiting">等待数据</span><span id="battery-hz" class="metric-rate">— Hz</span></div><p id="battery-detail">尚未接收到数据</p><details><summary>查看电池原始字段</summary><p class="raw-explainer">下列为消息原值；数组槽位、量纲及换算待设备协议确认，不按 V / A / °C 解释。SOH 同样保留原值。</p><dl id="battery-raw" class="raw-fields"></dl></details></div>
+        <div class="system-channel"><div><h3>主板状态</h3><span id="mainboard-status" class="status-text waiting">等待数据</span><span id="mainboard-hz" class="metric-rate">— Hz</span></div><p id="mainboard-detail">尚未接收到数据</p><details><summary>查看主板与 IMU 原始字段</summary><p class="raw-explainer">主板温度、风扇、数值及状态均保留原值；单位与数组槽位待确认。IMU 温度来自身体状态通道，独立判断新鲜度。</p><dl id="mainboard-raw" class="raw-fields"></dl><div id="imu-temperature-raw" class="raw-imu">IMU temperature 原值 —</div></details></div>
+        <div class="system-channel motion-channel"><div><h3>运动状态通道</h3><span id="motion-status" class="status-text waiting">等待数据</span><span id="motion-hz" class="metric-rate">— Hz</span></div><p id="motion-detail">尚未接收到数据</p><p class="raw-explainer">运动模式来自独立运动状态消息；mode_pr / mode_machine 见下方身体状态。</p></div>
+      </section>
+      <section class="card hand-card" aria-label="左手 Dex3 状态">
+        <div class="card-heading"><div><div class="eyebrow">DEX3 / LEFT HAND</div><h2>左手 <span id="hand_left-count">0 / 7</span></h2></div><div class="hand-channel"><span id="hand_left-status" class="status-text waiting">等待数据</span><span id="hand_left-hz" class="metric-rate">— Hz</span></div></div>
+        <div class="hand-details"><span id="hand_left-detail">等待独立 DDS 数据</span><span id="hand_left-power">电源 — · 设备错误 —</span></div>
+        <div class="table-scroll hand-table"><table><thead><tr><th>#</th><th>关节</th><th>角度 q <small>rad</small></th><th>温度 <small>°C</small></th><th>motorstate</th></tr></thead><tbody id="hand_left-rows"></tbody></table></div>
+        <div class="view-footer"><span id="hand_left-note">尚无 Dex3 数据 · 模型显示默认零位</span></div>
+      </section>
+      <section class="card hand-card" aria-label="右手 Dex3 状态">
+        <div class="card-heading"><div><div class="eyebrow">DEX3 / RIGHT HAND</div><h2>右手 <span id="hand_right-count">0 / 7</span></h2></div><div class="hand-channel"><span id="hand_right-status" class="status-text waiting">等待数据</span><span id="hand_right-hz" class="metric-rate">— Hz</span></div></div>
+        <div class="hand-details"><span id="hand_right-detail">等待独立 DDS 数据</span><span id="hand_right-power">电源 — · 设备错误 —</span></div>
+        <div class="table-scroll hand-table"><table><thead><tr><th>#</th><th>关节</th><th>角度 q <small>rad</small></th><th>温度 <small>°C</small></th><th>motorstate</th></tr></thead><tbody id="hand_right-rows"></tbody></table></div>
+        <div class="view-footer"><span id="hand_right-note">尚无 Dex3 数据 · 模型显示默认零位</span></div>
+      </section>
+      <section class="card imu-card">
+        <div class="card-heading"><div><div class="eyebrow">INERTIAL MEASUREMENT</div><h2>IMU 与身体状态字段</h2></div><span id="tick" class="mono secondary">tick —</span></div>
+        <div class="imu-grid">
+          <div><h3>姿态角 <small>deg</small></h3><dl id="rpy"></dl></div>
+          <div><h3>角速度 <small>rad/s</small></h3><dl id="gyro"></dl></div>
+          <div><h3>加速度 <small>m/s²</small></h3><dl id="accel"></dl></div>
+          <div><h3>底层状态字段</h3><dl><div><dt>mode_pr</dt><dd id="mode-pr">—</dd></div><div><dt>mode_machine</dt><dd id="mode-machine">—</dd></div><div><dt>四元数顺序</dt><dd class="secondary">w, x, y, z</dd></div></dl></div>
+        </div>
+        <div class="imu-bottom"><span>四元数</span><code id="quaternion">—</code><span id="imu-note">等待状态</span></div>
+      </section>
+      <section class="card joints-card">
+        <div class="card-heading"><div><div class="eyebrow">MOTOR TELEMETRY</div><h2>关节状态 <span id="joint-count">0 / 29</span></h2></div><span class="secondary table-hint">q 使用原始坐标 · 温度为双传感器读数</span></div>
+        <div class="table-scroll"><table><thead><tr><th>#</th><th>关节</th><th>角度 q <small>rad</small></th><th>速度 dq <small>rad/s</small></th><th>估计力矩 <small>N·m</small></th><th>温度 <small>°C</small></th><th>电压 <small>V</small></th><th>motorstate</th></tr></thead><tbody id="joint-rows"></tbody></table></div>
+      </section>
+    </main>
+    <footer class="page-footer"><span><i></i> G1 状态与雷达观测 · 无运动控制接口</span><span id="updated">尚未收到服务响应</span></footer>
+  </div>
+  <script type="module" src="/static/app.js?v=health-video-1"></script>
+</body>
+</html>

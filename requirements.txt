@@ -1,0 +1,12 @@
+# Headless OpenCV avoids GUI/Qt/GStreamer dependencies; video.py loads the
+# separate system FFmpeg ABI supplied by Dockerfile through ctypes.
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+cyclonedds==0.10.2
+rich-click==1.8.9
+rich==13.9.4
+click==8.1.8
+markdown-it-py==3.0.0
+mdurl==0.1.2
+Pygments==2.19.2
+typing_extensions==4.15.0
