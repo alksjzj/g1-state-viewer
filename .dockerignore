@@ -9,3 +9,13 @@ __pycache__
 .env.*
 dist
 build
+verification
+recordings
+screenshots
+videos
+obsidian
+.obsidian
+*.mp4
+*.mkv
+*.bag
+*.db3
