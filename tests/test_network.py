@@ -196,7 +196,7 @@ esac
 
     def launch(self, *args):
         return subprocess.run(['bash', str(ROOT / 'run.sh'), *args], env=self.environment,
-                              capture_output=True, text=True, stdin=subprocess.DEVNULL)
+                              capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=10)
 
     def commands(self):
         return self.log.read_text() if self.log.exists() else ''
